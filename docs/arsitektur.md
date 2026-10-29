@@ -84,6 +84,21 @@ HP ══WireGuard══► https://nextcloud.<tailnet>.ts.net ──► CT 102 
 - **HTTPS resmi** untuk Nextcloud: CT 102 bergabung langsung ke tailnet dan memakai `tailscale serve`, yang mengambil sertifikat Let's Encrypt untuk nama `ts.net` dan meneruskan ke Apache lokal.
 - Nextcloud dikonfigurasi dengan `trusted_proxies` + `overwritecondaddr` agar hanya permintaan dari proxy lokal yang dianggap HTTPS. Akses LAN lewat `http://nextcloud.home.arpa` tetap berfungsi.
 
+### Kontrol akses di dalam VPN (ACL Tailscale)
+
+Masuk ke tailnet tidak otomatis berarti boleh ke mana saja. Aturannya ditulis sebagai *grants* (default: tolak semua):
+
+| Perangkat | Identitas | Boleh ke |
+|---|---|---|
+| Laptop & ponsel pribadi | `autogroup:member` (tanpa tag) | Semua, termasuk LAN rumah lewat subnet router |
+| PC kantor | `tag:kantor` | Hanya Nextcloud HTTPS (`tag:nextcloud`, `tcp:443`) |
+| Server (gateway, Nextcloud) | `tag:gateway`, `tag:nextcloud` | Tidak memulai koneksi |
+
+- Semua perangkat login dengan akun yang sama, jadi pembeda akses memakai **tag**, bukan akun.
+- `autoApprovers` menyetujui rute LAN dari `tag:gateway` secara otomatis.
+- Bagian `tests` memastikan PC kantor **tidak** bisa ke Proxmox, DNS, atau SSH server; perubahan policy yang melanggar ditolak saat disimpan.
+- Contoh file: [`tailscale-policy.example.hujson`](tailscale-policy.example.hujson)
+
 ## 4. Komponen di setiap kontainer
 
 | CT | Layanan | Komponen | Firewall masuk |
@@ -101,6 +116,7 @@ Semua kontainer: template Debian 13, **unprivileged**, zona waktu mengikuti host
 |---|---|---|
 | LXC + instalasi manual Nextcloud | VM + Docker (All-in-One) | Lebih ringan, dan setiap komponen benar-benar dipahami |
 | Tailscale untuk Nextcloud | Membuka Nextcloud ke publik lewat Cloudflare | Tidak ada pintu ke internet; batas ukuran unggahan di paket gratis tunnel |
+| Tag per perangkat di Tailscale | Aturan per akun | Semua perangkat memakai satu akun; tag memisahkan perangkat pribadi dan non-pribadi |
 | Cloudflare Tunnel untuk situs publik | Port forwarding 80/443 | IP rumah tersembunyi, tanpa port terbuka, TLS & WAF gratis |
 | Dua Pi-hole di perangkat fisik berbeda | Satu Pi-hole | Menghapus *single point of failure* DNS rumah |
 | Unbound + DoT | DNS ISP / DNS polos | ISP terbukti membajak port 53; DoT tidak bisa dibaca atau diubah di jalan |

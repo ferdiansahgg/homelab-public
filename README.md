@@ -16,7 +16,8 @@ Homelab rumahan yang saya bangun dari nol, langkah demi langkah, dengan prinsip 
 | Cloud pribadi untuk foto & file keluarga | Nextcloud di LXC, instalasi manual (Apache, PHP, MariaDB, Redis, APCu) |
 | Website publik tanpa port forwarding | nginx di balik **Cloudflare Tunnel**, halaman pribadi dijaga **Cloudflare Access** (OTP email) |
 | Akses Proxmox, Pi-hole, Nextcloud dari mana saja | **Tailscale** subnet router + split DNS, HTTPS resmi untuk Nextcloud via `tailscale serve` |
-| Setiap layanan bisa dipulihkan | Backup harian Proxmox, snapshot sebelum setiap langkah berisiko, **uji restore** sungguhan |
+| Akses dibatasi per perangkat | **ACL Tailscale** (tag + grants) dengan **tests** otomatis: perangkat kantor hanya boleh ke Nextcloud |
+| Setiap layanan bisa dipulihkan | Backup harian Proxmox, snapshot sebelum setiap langkah berisiko, **uji restore** sungguhan, salinan backup terverifikasi checksum di media kedua |
 
 ## 🧱 Stack
 
@@ -71,11 +72,13 @@ Penjelasan lengkap: [`docs/arsitektur.md`](docs/arsitektur.md)
 | [`docs/arsitektur.md`](docs/arsitektur.md) | Desain jaringan, alur DNS, alur akses dari luar, keputusan desain |
 | [`docs/perjalanan.md`](docs/perjalanan.md) | Tahapan proyek dari Raspberry Pi sampai Tailscale, apa yang dikerjakan dan diuji di setiap tahap |
 | [`docs/pelajaran.md`](docs/pelajaran.md) | Masalah nyata yang saya temui, penyebabnya, dan cara memperbaikinya |
+| [`docs/tailscale-policy.example.hujson`](docs/tailscale-policy.example.hujson) | Contoh policy Tailscale yang dipakai (disanitasi) |
 
 ## 🔐 Prinsip keamanan yang diterapkan
 
 - **Tidak ada port terbuka** di router. Akses publik lewat terowongan keluar (Cloudflare), akses pribadi lewat WireGuard (Tailscale).
-- **Least privilege**: semua kontainer *unprivileged*; kontainer yang menghadap internet diblokir firewall agar tidak bisa menjangkau LAN.
+- **Least privilege**: semua kontainer *unprivileged*; kontainer yang menghadap internet diblokir firewall agar tidak bisa menjangkau LAN; perangkat di VPN hanya mendapat akses yang memang dibutuhkan (ACL berbasis tag).
+- **Policy-as-code dengan tes**: aturan akses VPN disimpan sebagai file dan diuji otomatis setiap kali diubah.
 - **SSH hanya dengan kunci**, password login dimatikan.
 - **Firewall per layanan** (Proxmox Firewall untuk LXC, UFW untuk STB), hanya mengizinkan LAN.
 - **Verifikasi sebelum percaya**: checksum image/installer dicek, skrip installer dibaca dulu sebelum dijalankan.
@@ -93,7 +96,7 @@ Penjelasan lengkap: [`docs/arsitektur.md`](docs/arsitektur.md)
 
 ## 🚧 Rencana berikutnya
 
-- [ ] ACL Tailscale (perangkat tertentu hanya boleh ke Nextcloud)
+- [x] ACL Tailscale (perangkat tertentu hanya boleh ke Nextcloud)
 - [ ] Storage tambahan (NVMe / HDD 6 TB) untuk data Nextcloud
 - [ ] SMTP untuk notifikasi Nextcloud
 - [ ] Otomasi sinkronisasi dua Pi-hole

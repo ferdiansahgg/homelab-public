@@ -78,6 +78,24 @@ Masalah nyata yang saya temui selama membangun homelab ini. Formatnya: **gejala 
 - **Temuan:** router saya memakai platform yang tidak didukung OpenWrt; mencobanya berisiko *brick* dan kehilangan fitur mesh.
 - **Pelajaran:** cek dukungan resmi (Table of Hardware, versi hardware) sebelum mengikuti tutorial.
 
+### 12. Satu akun, banyak perangkat: aturan tidak bisa berbasis akun
+
+- **Masalah:** laptop pribadi dan PC kantor login ke VPN dengan akun yang sama, sehingga aturan "akun X boleh ke Y" tidak bisa membedakan keduanya.
+- **Solusi:** beri **tag** pada perangkat yang bukan pribadi. Perangkat bertag keluar dari `autogroup:member` dan hanya mendapat akses yang ditulis untuk tag-nya.
+- **Pelajaran:** identitas akses bisa melekat ke perangkat, bukan hanya ke orang. Ubah identitas dulu (pasang tag) sebelum mengubah aturan, supaya tidak ada akses yang terputus di tengah jalan.
+
+### 13. Policy tanpa tes = menunggu salah ketik
+
+- **Masalah:** suatu hari policy bisa diedit dan tanpa sengaja membuka akses yang seharusnya tertutup.
+- **Solusi:** bagian `tests` di policy Tailscale menyatakan "PC kantor **harus ditolak** ke Proxmox/DNS/SSH". Kalau aturan baru melanggar, Save ditolak.
+- **Pelajaran:** sama seperti kode, konfigurasi keamanan juga butuh tes otomatis.
+
+### 14. "HTTPS" belum tentu privat di perangkat orang lain
+
+- **Temuan:** saat menguji dari PC kantor, Firefox memperingatkan bahwa sebuah aplikasi atau layanan bisa melihat lalu lintas terenkripsi, tanda inspeksi HTTPS oleh antivirus atau firewall.
+- **Tindakan:** cek *issuer* sertifikat; tidak login ke layanan pribadi dari perangkat itu.
+- **Pelajaran:** keamanan ujung ke ujung bergantung pada perangkat di ujungnya.
+
 ---
 
 ## Kebiasaan yang terbukti menyelamatkan

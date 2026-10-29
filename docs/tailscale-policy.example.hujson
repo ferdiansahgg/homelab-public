@@ -1,0 +1,52 @@
+// Tailnet policy homelab (contoh, disanitasi)
+// Berlaku sejak 28 Okt 2026 (Tahap 8). Edit di: console.tailscale.com → Access controls → JSON editor
+// Prinsip: tolak semua kecuali yang diizinkan di "grants". "tests" dijalankan setiap Save.
+{
+	// Tag = label pemilik perangkat. Perangkat bertag BUKAN autogroup:member.
+	"tagOwners": {
+		"tag:gateway":   ["autogroup:admin"], // CT 104 ts-gateway (subnet router)
+		"tag:nextcloud": ["autogroup:admin"], // CT 102 nextcloud (tailscale serve HTTPS)
+		"tag:kantor":    ["autogroup:admin"], // desktop-34aak2g (PC kantor, Windows)
+	},
+
+	// Rute LAN dari mesin bertag gateway disetujui otomatis
+	"autoApprovers": {
+		"routes": {
+			"192.168.0.0/24": ["tag:gateway"],
+		},
+	},
+
+	"grants": [
+		// Perangkat pribadi tanpa tag (Mac, iPhone, CachyOS): boleh ke semua,
+		// termasuk LAN rumah 192.168.0.0/24 lewat ts-gateway
+		{"src": ["autogroup:member"], "dst": ["*"], "ip": ["*"]},
+
+		// PC kantor: hanya Nextcloud lewat HTTPS (tailscale serve di port 443)
+		{"src": ["tag:kantor"], "dst": ["tag:nextcloud"], "ip": ["tcp:443"]},
+	],
+
+	// Aturan Tailscale SSH bawaan. Tidak dipakai (SSH lewat OpenSSH + kunci), dibiarkan.
+	"ssh": [
+		{
+			"action": "check",
+			"src":    ["autogroup:member"],
+			"dst":    ["autogroup:self"],
+			"users":  ["autogroup:nonroot", "root"],
+		},
+	],
+
+	// Ujian otomatis: Save ditolak kalau ada yang gagal
+	"tests": [
+		// Perangkat pribadi harus bisa ke semua
+		{
+			"src":    "you@example.com",
+			"accept": ["tag:nextcloud:443", "192.168.0.10:8006", "192.168.0.53:53"],
+		},
+		// PC kantor hanya boleh Nextcloud HTTPS
+		{
+			"src":    "tag:kantor",
+			"accept": ["tag:nextcloud:443"],
+			"deny":   ["192.168.0.10:8006", "192.168.0.53:53", "tag:nextcloud:22", "tag:gateway:22"],
+		},
+	],
+}

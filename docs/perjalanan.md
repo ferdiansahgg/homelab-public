@@ -76,3 +76,15 @@ Setiap tahap diakhiri **checkpoint**: bukti bahwa tahap itu benar-benar bekerja 
 - HSTS dan penyembunyian versi Apache.
 
 **Checkpoint:** Proxmox dan Pi-hole terbuka dari HP lewat data seluler; `curl -sI https://nextcloud.<tailnet>.ts.net/status.php` → `HTTP/2 200` dengan header HSTS dan `server: Apache` tanpa versi; akses LAN `http://` tetap `200 OK`; peringatan HTTPS/HSTS di Nextcloud hilang; aplikasi ponsel tersambung lewat HTTPS.
+
+## Bagian 8: Salinan backup & ACL Tailscale (Tahap 8)
+
+**Salinan backup ke media kedua.** Data dan backup sementara masih berada di SSD fisik yang sama, jadi backup terbaru setiap kontainer disalin ke laptop terenkripsi (FileVault) dengan `rsync`, lalu diverifikasi dengan SHA-256 di kedua sisi. Retensi backup diperiksa (`keep-daily=7, keep-weekly=4`), dan risiko ukuran backup Nextcloud saat data foto bertambah dicatat.
+
+**ACL Tailscale.** Aturan bawaan "semua boleh ke semua" diganti dengan tiga langkah aman:
+
+1. Backup policy lama sebagai titik kembali.
+2. Definisikan tag (`tagOwners`, `autoApprovers`) lalu pasang ke server dan PC kantor, sementara aturan lama masih aktif, sehingga belum ada akses yang berubah.
+3. Ganti aturan dengan grants berbasis tag dan tambahkan `tests` otomatis.
+
+**Checkpoint:** keenam tes policy lulus saat disimpan; dari ponsel (data seluler) Proxmox, Pi-hole, dan Nextcloud tetap terbuka; dari PC kantor hanya Nextcloud HTTPS yang terbuka, sedangkan Proxmox *timed out* dan nama `home.arpa` tidak terselesaikan. Selama pengujian juga ditemukan bahwa browser di PC kantor mendeteksi inspeksi HTTPS, sehingga PC tersebut tidak dipakai untuk login data pribadi.
