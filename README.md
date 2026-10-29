@@ -15,13 +15,14 @@ Homelab rumahan yang saya bangun dari nol, langkah demi langkah, dengan prinsip 
 | DNS tetap jalan walau satu server mati | Dua Pi-hole (STB Armbian + kontainer Proxmox), failover **teruji** |
 | Cloud pribadi untuk foto & file keluarga | Nextcloud di LXC, instalasi manual (Apache, PHP, MariaDB, Redis, APCu) |
 | Website publik tanpa port forwarding | nginx di balik **Cloudflare Tunnel**, halaman pribadi dijaga **Cloudflare Access** (OTP email) |
+| Salinan siaga aplikasi web produksi | Aplikasi **Laravel 12** (PHP-FPM 8.4 + MariaDB) dideploy dengan rsync + skrip, web root `public/`, hanya `index.php` yang dieksekusi |
 | Akses Proxmox, Pi-hole, Nextcloud dari mana saja | **Tailscale** subnet router + split DNS, HTTPS resmi untuk Nextcloud via `tailscale serve` |
 | Akses dibatasi per perangkat | **ACL Tailscale** (tag + grants) dengan **tests** otomatis: perangkat kantor hanya boleh ke Nextcloud |
 | Setiap layanan bisa dipulihkan | Backup harian Proxmox, snapshot sebelum setiap langkah berisiko, **uji restore** sungguhan, salinan backup terverifikasi checksum di media kedua |
 
 ## 🧱 Stack
 
-`Proxmox VE 9` · `Debian 13 (LXC)` · `Armbian` · `Pi-hole v6` · `Unbound` · `Nextcloud` · `Apache` · `MariaDB` · `Redis` · `nginx` · `Cloudflare Tunnel` · `Cloudflare Access` · `Tailscale` · `WireGuard` · `Proxmox Firewall` · `UFW`
+`Proxmox VE 9` · `Debian 13 (LXC)` · `Armbian` · `Pi-hole v6` · `Unbound` · `Nextcloud` · `Laravel` · `PHP-FPM` · `Apache` · `MariaDB` · `Redis` · `nginx` · `Cloudflare Tunnel` · `Cloudflare Access` · `Tailscale` · `WireGuard` · `Proxmox Firewall` · `UFW`
 
 ## 🖥️ Perangkat keras
 

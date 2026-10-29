@@ -96,6 +96,30 @@ Masalah nyata yang saya temui selama membangun homelab ini. Formatnya: **gejala 
 - **Tindakan:** cek *issuer* sertifikat; tidak login ke layanan pribadi dari perangkat itu.
 - **Pelajaran:** keamanan ujung ke ujung bergantung pada perangkat di ujungnya.
 
+### 15. "Sudah jalan di produksi" ≠ salinannya pasti jalan
+
+- **Gejala:** aplikasi Laravel hasil unduhan dari hosting selalu error 500 di server baru.
+- **Penyebab:** beberapa file PHP terunduh **0 byte** (unduhan per file lewat panel hosting). Produksi tetap jalan karena memakai file aslinya.
+- **Cara menemukan:** log dikosongkan dulu supaya hanya berisi error terbaru; `ls -la` menunjukkan ukuran 0; `find . -type f -size 0` mengaudit semuanya sekaligus.
+- **Pelajaran:** ambil arsip utuh (zip/Git), bukan ribuan file satu per satu; selalu cek file kosong setelah deploy.
+
+### 16. Cap waktu file adalah petunjuk forensik
+
+- **Masalah:** "Di laptop file ini ada isinya, kenapa di server kosong?"
+- **Jawaban:** `rsync -a` menyalin waktu modifikasi. File di server bertanggal sama dengan folder unduhan lama, bukan folder update, jadi folder update belum pernah tersalin.
+- **Pelajaran:** sebelum menebak, bandingkan ukuran dan cap waktu di kedua sisi.
+
+### 17. Dugaan pertama bisa salah, dan itu wajar
+
+- **Kasus:** `Class not found` sempat diduga karena autoloader Composer di `vendor/` usang. Pengecekan (`grep` classmap) membuktikan autoloader sudah benar; filenya yang kosong.
+- **Pelajaran:** uji hipotesis dengan satu perintah murah sebelum menjalankan perbaikan besar.
+
+### 18. Opsi pendek rsync itu bukan hiasan
+
+- **Gejala:** `skipping directory .` dan `--delete does not work without --recursive`.
+- **Penyebab:** `-a` (archive, termasuk rekursif) tertinggal; spasi setelah `\` memutus perintah multi-baris.
+- **Solusi:** perintah yang sudah dipahami dibungkus jadi skrip dengan mode uji coba sebagai bawaan.
+
 ---
 
 ## Kebiasaan yang terbukti menyelamatkan

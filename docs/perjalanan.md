@@ -88,3 +88,16 @@ Setiap tahap diakhiri **checkpoint**: bukti bahwa tahap itu benar-benar bekerja 
 3. Ganti aturan dengan grants berbasis tag dan tambahkan `tests` otomatis.
 
 **Checkpoint:** keenam tes policy lulus saat disimpan; dari ponsel (data seluler) Proxmox, Pi-hole, dan Nextcloud tetap terbuka; dari PC kantor hanya Nextcloud HTTPS yang terbuka, sedangkan Proxmox *timed out* dan nama `home.arpa` tidak terselesaikan. Selama pengujian juga ditemukan bahwa browser di PC kantor mendeteksi inspeksi HTTPS, sehingga PC tersebut tidak dipakai untuk login data pribadi.
+
+## Bagian 9: Deploy aplikasi Laravel sebagai salinan siaga
+
+**Tujuan:** menjalankan salinan aplikasi web kantor (Laravel 12) di kontainer web, di balik Cloudflare Access, supaya ada cadangan yang bisa dijalankan kalau situs utama mati atau diretas.
+
+- **Periksa sebelum deploy:** survei struktur, cari pola *webshell* (`eval`, `base64_decode`, `gzinflate`, `shell_exec`), baca skrip non-standar dan `.htaccess`/`.user.ini`. Skrip installer sekali pakai tidak ikut dideploy.
+- **Siapkan server:** naikkan RAM/disk kontainer (tanpa restart), snapshot, pasang PHP-FPM 8.4 + ekstensi Laravel + MariaDB lokal (kontainer ini dipagari dari LAN, jadi database harus di dalamnya).
+- **Salin dengan rsync** dengan uji coba dulu, lalu tertibkan izin: kode milik `root`, hanya `storage/`, `bootstrap/cache/`, dan folder unggahan yang bisa ditulis PHP. `.env` dibuat baru (`640`), tidak pernah disalin dari hosting.
+- **nginx:** web root `public/`, hanya `index.php` yang dieksekusi (file `.php` terunggah tidak bisa dijalankan), dotfile ditolak, `fastcgi_param HTTPS on` karena TLS berakhir di Cloudflare.
+- **Debug error 500 secara sistematis:** log bersih → satu pesan error → satu perbaikan. Penyebabnya ternyata beberapa file **0 byte** dari unduhan per file; dibuktikan lewat ukuran dan **cap waktu** file, lalu deploy ulang dari arsip zip utuh.
+- **Otomasi kecil:** perintah rsync dibungkus skrip yang bawaannya *dry run*.
+
+**Checkpoint:** halaman utama `200`, migrasi database lengkap, tidak ada file kosong tersisa, situs terbuka lewat Cloudflare Access.

@@ -105,7 +105,7 @@ Masuk ke tailnet tidak otomatis berarti boleh ke mana saja. Aturannya ditulis se
 |---|---|---|---|
 | 101 | DNS cadangan | Pi-hole v6, Unbound | SSH, DNS, HTTP, HTTPS dari LAN |
 | 102 | Cloud pribadi | Apache, PHP, MariaDB, Redis, APCu, Nextcloud, Tailscale | SSH, HTTP dari LAN |
-| 103 | Situs publik | nginx, cloudflared | SSH, HTTP dari LAN (+ blokir keluar ke LAN) |
+| 103 | Situs publik + salinan siaga aplikasi Laravel | nginx, cloudflared, PHP-FPM 8.4, MariaDB | SSH, HTTP dari LAN (+ blokir keluar ke LAN) |
 | 104 | Gerbang VPN | Tailscale (subnet router, IP forwarding) | SSH dari LAN |
 
 Semua kontainer: template Debian 13, **unprivileged**, zona waktu mengikuti host, login SSH dengan kunci, ikut backup harian.
